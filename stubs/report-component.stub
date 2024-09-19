@@ -1,0 +1,17 @@
+<?php
+
+namespace DummyNamespace;
+
+use Illuminate\Database\Eloquent\Builder;
+use Rishadblack\WireReports\ReportComponent;
+use App\Models\User;
+
+class DummyClass extends ReportComponent
+{
+    public $view = 'DummyViewLocation';
+
+    public function builder(): Builder
+    {
+        return User::query();
+    }
+}

@@ -1,0 +1,3 @@
+<div>
+    @includeIf($view)
+</div>
