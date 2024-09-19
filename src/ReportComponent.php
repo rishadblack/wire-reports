@@ -10,14 +10,13 @@ use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Database\Eloquent\Builder;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
 use Rishadblack\WireReports\Exports\ReportExport;
+use Rishadblack\WireReports\Traits\ComponentHelpers;
 
 abstract class ReportComponent extends Component
 {
     use WithPagination;
+    use ComponentHelpers;
 
-    public $view;
-    public $pdf_view = 'wire-reports::export-layouts.pdf';
-    public $excel_view = 'wire-reports::export-layouts.excel';
     public $pdf_export_by = 'snappy'; // snappy or mpdf
     public $download_file_name = 'report';
 
@@ -43,7 +42,7 @@ abstract class ReportComponent extends Component
     public function exportExcel()
     {
         $class = new ReportExport();
-        $class->setCurrentView($this->excel_view);
+        $class->setCurrentView($this->getExcelView());
         $class->setCurrentData($this->returnViewData());
 
         return Excel::download($class, 'report-'.now()->format('d-m-y-h-i').'.xlsx', \Maatwebsite\Excel\Excel::XLSX);
@@ -58,13 +57,13 @@ abstract class ReportComponent extends Component
         } else {
             $datas = $this->baseBuilder()->get();
         }
-
-        return ['datas' => $datas, 'view' => $this->view];
+        dd($this->getReportView());
+        return ['datas' => $datas, 'view' => $this->getReportView()];
     }
 
     public function pdfExportBySnappy()
     {
-        $pdf = SnappyPdf::loadView($this->pdf_view, $this->returnViewData());
+        $pdf = SnappyPdf::loadView($this->getPdfView(), $this->returnViewData());
 
         $pdf->setOption('page-size', 'A4'); // A3, A4, A5, Legal, Letter, Tabloid
         $pdf->setOption('orientation', 'Landscape'); // Landscape or Portrait
@@ -80,7 +79,7 @@ abstract class ReportComponent extends Component
 
     public function pdfExportByMpdf()
     {
-        $pdf = LaravelMpdf::loadView($this->pdf_view, $this->returnViewData(), [], [
+        $pdf = LaravelMpdf::loadView($this->getPdfView(), $this->returnViewData(), [], [
             'format' => 'A4',
             'autoScriptToLang' => false,
             'autoLangToFont' => false,

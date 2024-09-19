@@ -3,100 +3,130 @@
 namespace Rishadblack\WireReports\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\PromptsForMissingInput;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Illuminate\Filesystem\Filesystem;
+use Livewire\Features\SupportConsoleCommands\Commands\ComponentParser;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Finder\Finder;
 
-class MakeWireReports extends Command
+use function Laravel\Prompts\text;
+
+/**
+ * Class MakeWireReports
+ */
+class MakeWireReports extends Command implements PromptsForMissingInput
 {
-    protected $signature = 'make:wire-reports {name : The name of the report component}';
+    protected ComponentParser $parser;
 
-    protected $description = 'Create a new Livewire report component with views';
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'make:wire-reports
+        {name : The name of the report component}
+        {--force}';
 
-    protected $filesystem;
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new Livewire report component with views.';
 
-    public function __construct(Filesystem $filesystem)
+    /**
+     * Generate the report component
+     */
+    public function handle(): void
     {
-        parent::__construct();
-        $this->filesystem = $filesystem;
-    }
+        $this->parser = new ComponentParser(
+            config('livewire.class_namespace'),
+            config('livewire.view_path'),
+            'Reports.'.$this->argument('name')
+        );
 
-    public function handle()
-    {
-        $name = $this->argument('name');
-        $nameParts = explode('.', $name);
+        $name = $this->parser->className();
 
-        if (count($nameParts) === 1) {
-            $className = Str::studly($nameParts[0]);
-            $folderName = '';
-            $viewFolderName = '';
-        } else {
-            $className = Str::studly(array_pop($nameParts));
-            $folderName = implode('/', array_map('ucfirst', $nameParts)); // Class folder name
-            $viewFolderName = implode('/', array_map('Str::kebab', $nameParts)); // View folder name in kebab case
+        if (File::exists($this->parser->classPath())) {
+            if (!$this->option('force')) {
+                $this->line("<fg=red;options=bold>Class already exists:</> {$this->parser->relativeClassPath()}");
+
+                return;
+            }
         }
 
-        $this->createComponent($className, $folderName, $viewFolderName);
-        $this->createViewFile($viewFolderName, $className);
-        $this->info('Livewire report component created successfully.');
+        $this->createClass();
+        $this->createViews();
+
+        $this->info('Livewire report component created successfully: '.$name);
     }
 
-    protected function createComponent($className, $folderName, $viewFolderName)
+    protected function createClass(): void
     {
-        $path = base_path("app/Livewire/Reports/{$folderName}");
-        $fileName = "{$className}.php";
-
-        // Create the directory if it doesn't exist
-        if (! $this->filesystem->isDirectory($path)) {
-            $this->filesystem->makeDirectory($path, 0755, true);
-        }
-
-        // Create the component class file
-        $this->filesystem->put($path.'/'.$fileName, $this->buildClass($className, $folderName, $viewFolderName));
+        $this->ensureDirectoryExists($this->parser->classPath());
+        File::put($this->parser->classPath(), $this->classContents());
     }
 
-    protected function buildClass($className, $folderName, $viewFolderName)
+    protected function createViews(): void
+    {
+        $this->ensureDirectoryExists($this->parser->viewPath());
+
+        $viewStub = $this->getStub('report-component-view.stub');
+        File::put($this->parser->viewPath(), $this->populateViewStub($viewStub, $this->parser->viewName()));
+    }
+
+    protected function ensureDirectoryExists($path): void
+    {
+        if (! File::isDirectory(dirname($path))) {
+            File::makeDirectory(dirname($path), 0777, true, true);
+        }
+    }
+
+    public function classContents(): string
     {
         $stub = $this->getStub('report-component.stub');
-        $viewName = Str::kebab($className);
-        $viewLocation = "livewire/reports/{$viewFolderName}/{$viewName}";
         return str_replace(
             ['DummyNamespace', 'DummyClass', 'DummyViewLocation'],
-            ['App\\Livewire\\Reports\\' . $folderName, $className, $viewLocation],
+            [$this->parser->classNamespace(), $this->parser->className(), $this->parser->viewName()],
             $stub
         );
     }
 
-    protected function createViewFile($viewFolderName, $className)
-    {
-        $viewPath = resource_path("views/livewire/reports/{$viewFolderName}/");
-        $viewName = Str::kebab($className);
-
-        if (! $this->filesystem->isDirectory($viewPath)) {
-            $this->filesystem->makeDirectory($viewPath, 0755, true);
-        }
-
-        $stub = $this->getStub('report-component-view.stub');
-        $this->filesystem->put($viewPath . $viewName . '.blade.php', $this->populateViewStub($stub, $className));
-    }
-
-    protected function populateViewStub($stub, $className)
+    protected function populateViewStub($stub, $viewName): string
     {
         return str_replace(
-            ['DummyClass'],
-            [Str::kebab($className)],
+            ['DummyViewName'],
+            [$viewName],
             $stub
         );
     }
 
-    protected function getStub($stubName)
+    protected function getStub($stubName): string
     {
         $stubPath = base_path("stubs/{$stubName}");
 
-        if ($this->filesystem->exists($stubPath)) {
-            return $this->filesystem->get($stubPath);
+        if (File::exists($stubPath)) {
+            return File::get($stubPath);
         }
 
         // Fallback to the package stub if the file does not exist
-        return $this->filesystem->get(__DIR__."/../../../stubs/{$stubName}");
+        return File::get(__DIR__."/../../../stubs/{$stubName}");
+    }
+
+    protected function promptForMissingArguments(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->didReceiveOptions($input)) {
+            return;
+        }
+
+        if (trim($this->argument('name')) === '') {
+            $name = text('What is the name of the report component?', 'TestReport');
+
+            if ($name) {
+                $input->setArgument('name', $name);
+            }
+        }
     }
 }

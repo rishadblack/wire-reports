@@ -3,6 +3,7 @@
 namespace Rishadblack\WireReports;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Console\AboutCommand;
 use Rishadblack\WireReports\Console\Commands\MakeWireReports;
 use Rishadblack\WireReports\Console\Commands\DeleteWireReports;
 
@@ -15,6 +16,9 @@ class WireReportsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        AboutCommand::add('Wire Report', fn () => ['Version' => 'V1.0.0']);
+
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'rishadblack');
         // $this->loadViewsFrom(__DIR__.'/../resources/views', 'rishadblack');
         // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
