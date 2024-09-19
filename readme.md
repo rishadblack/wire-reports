@@ -27,9 +27,8 @@ To publish the package stubs for customization, run:
 php artisan vendor:publish --provider="Rishadblack\WireReports\WireReportsServiceProvider" --tag="wire-reports-stubs"
 ```
 
-### Usage
-
-# Creating a Report Component
+## Usage
+### Creating a Report Component
 
 You can create a new Livewire report component using the Artisan command:
 
@@ -37,7 +36,6 @@ You can create a new Livewire report component using the Artisan command:
 
 php artisan make:wire-reports {name}
 ```
-
 The {name} argument should be the name of the component. You can include subfolders by using dot notation (e.g., Demo.Test).
 Example
 
@@ -47,13 +45,34 @@ To create a report component named TestReport in the Demo folder:
 
 php artisan make:wire-reports Demo.Test
 ```
-
 This will create:
 
     A Livewire component file at app/Livewire/Reports/Demo/TestReport.php
     A Blade view file at resources/views/livewire/reports/demo/test-report.blade.php
 
-## Customizing the Report Component
+### Deleting a Report Component
+
+You can delete an existing Livewire report component using the Artisan command:
+
+```bash
+
+php artisan delete:wire-reports {name}
+```
+The {name} argument should be the name of the component to delete. It will remove both the component class and the associated view file.
+Example
+
+To delete the TestReport component from the Demo folder:
+
+```bash
+
+php artisan delete:wire-reports Demo.Test
+```
+This will remove:
+
+    The Livewire component file at app/Livewire/Reports/Demo/TestReport.php
+    The Blade view file at resources/views/livewire/reports/demo/test-report.blade.php
+
+### Customizing the Report Component
 
 Edit the generated component file to define your report's data builder and view:
 
@@ -103,12 +122,6 @@ Edit the Blade view file to customize the report layout:
     </x-slot:tbody>
 </x-report.table>
 ```
-
-## Command Options
-
-    make:wire-reports: Create a new Livewire report component with views.
-        {name}: The name of the report component. Use dot notation for subfolders.
-
 ## License
 
 This package is licensed under the MIT License. See LICENSE for more details.
