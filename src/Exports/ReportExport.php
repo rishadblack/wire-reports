@@ -39,35 +39,35 @@ class ReportExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet = $event->sheet;
 
                 // Merge cells for the logo row to span across columns
-                $sheet->mergeCells('A1:C1');
+                // $sheet->mergeCells('A1:C1');
 
                 // Center the image and text in the merged cells
-                $sheet->getStyle('A1:C1')->applyFromArray([
-                    'alignment' => [
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                    ],
-                ]);
+                // $sheet->getStyle('A1:C1')->applyFromArray([
+                //     'alignment' => [
+                //         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                //         'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                //     ],
+                // ]);
 
 
                 // Adjust column widths to help center the content
-                $sheet->getColumnDimension('A')->setWidth(30);
-                $sheet->getColumnDimension('B')->setWidth(30);
-                $sheet->getColumnDimension('C')->setWidth(30);
+                // $sheet->getColumnDimension('A')->setWidth(30);
+                // $sheet->getColumnDimension('B')->setWidth(30);
+                // $sheet->getColumnDimension('C')->setWidth(30);
 
                 // Adjust the row height to fit the logo
-                $sheet->getRowDimension(1)->setRowHeight(90);
+                // $sheet->getRowDimension(1)->setRowHeight(90);
 
                 // // Apply styles to other rows if needed (e.g., headers)
-                $sheet->getStyle('A2:C2')->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 14,
-                    ],
-                    'alignment' => [
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    ],
-                ]);
+                // $sheet->getStyle('A2:C2')->applyFromArray([
+                //     'font' => [
+                //         'bold' => true,
+                //         'size' => 14,
+                //     ],
+                //     'alignment' => [
+                //         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                //     ],
+                // ]);
             },
         ];
     }

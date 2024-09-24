@@ -16,8 +16,12 @@ class WireReportsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (class_exists(AboutCommand::class) && class_exists(\Composer\InstalledVersions::class)) {
+            AboutCommand::add('Wire Report', [
+                'Version' => 'v'.\Composer\InstalledVersions::getPrettyVersion('rishadblack/wire-reports'),
+            ]);
+        }
 
-        AboutCommand::add('Wire Report', fn () => ['Version' => 'V1.0.0']);
 
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'rishadblack');
         // $this->loadViewsFrom(__DIR__.'/../resources/views', 'rishadblack');

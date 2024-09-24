@@ -3,93 +3,90 @@
 namespace Rishadblack\WireReports;
 
 use Livewire\Component;
+use Livewire\Attributes\Url;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\View;
-use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Database\Eloquent\Builder;
-use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
-use Rishadblack\WireReports\Exports\ReportExport;
+use Rishadblack\WireReports\Traits\WithExcel;
+use Rishadblack\WireReports\Traits\WithMpdfPdf;
+use Rishadblack\WireReports\Traits\WithSnappyPdf;
 use Rishadblack\WireReports\Traits\ComponentHelpers;
 
 abstract class ReportComponent extends Component
 {
     use WithPagination;
+    use WithMpdfPdf;
+    use WithSnappyPdf;
+    use WithExcel;
     use ComponentHelpers;
 
-    public $pdf_export_by = 'snappy'; // snappy or mpdf
-    public $download_file_name = 'report';
+    #[Url]
+    public $filters = [];
+
+    abstract public function builder(): Builder;
+    abstract public function configure(): void;
 
     public function baseBuilder(): Builder
     {
         return $this->builder();
     }
 
+    public function export(string $type)
+    {
+        if ($type == 'pdf') {
+            return $this->exportPdf();
+        } elseif ($type == 'xlsx' || $type == 'csv') {
+            return $this->exportExcel($type);
+        }
+    }
+
     public function exportPdf()
     {
         try {
-            if ($this->pdf_export_by == 'mpdf') {
+            if (config('wire-reports.pdf_export_by') == 'mpdf') {
                 return $this->pdfExportByMpdf();
-            } else {
+            } elseif (config('wire-reports.pdf_export_by') == 'snappy') {
                 return $this->pdfExportBySnappy();
             }
         } catch (\Exception $e) {
-            // Handle error
             dd('PDF generation error: ' . $e->getMessage());
         }
     }
 
-    public function exportExcel()
+    public function exportExcel($type)
     {
-        $class = new ReportExport();
-        $class->setCurrentView($this->getExcelView());
-        $class->setCurrentData($this->returnViewData());
-
-        return Excel::download($class, 'report-'.now()->format('d-m-y-h-i').'.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        try {
+            return $this->excelExportByMaatwebsite($type);
+        } catch (\Exception $e) {
+            dd('Excel generation error: ' . $e->getMessage());
+        }
     }
 
-    abstract public function builder(): Builder;
-
-    public function returnViewData($pagination = false)
+    public function returnViewData(bool|int $pagination = false, bool $export = false, string $export_type = 'pdf')
     {
+        $this->configure();
+
         if ($pagination) {
-            $datas = $this->baseBuilder()->paginate(200);
+            $datas = $this->baseBuilder()->paginate($this->getPagination());
         } else {
             $datas = $this->baseBuilder()->get();
         }
-        dd($this->getReportView());
-        return ['datas' => $datas, 'view' => $this->getReportView()];
+
+        return [
+            'datas' => $datas,
+            'view' => $this->getReportView(),
+            'configure' => [
+                'export' => $export,
+                'export_type' => $export_type, // pdf or excel
+                'title' => $this->getFileTitle(),
+                'button' => $this->getButtonView(),
+            ]
+
+        ];
     }
 
-    public function pdfExportBySnappy()
+    public function filterReset(): void
     {
-        $pdf = SnappyPdf::loadView($this->getPdfView(), $this->returnViewData());
-
-        $pdf->setOption('page-size', 'A4'); // A3, A4, A5, Legal, Letter, Tabloid
-        $pdf->setOption('orientation', 'Landscape'); // Landscape or Portrait
-        $pdf->setOption('header-center', '[page]/[toPage]'); //header-right='[page]/[toPage]'
-        $pdf->setOption('footer-left', '[page]/[toPage]'); //header-right='[page]/[toPage]'
-        $pdf->setOption('footer-center', 'Company Name'); //header-right='[page]/[toPage]'
-        $pdf->setOption('footer-right', now()->format('d-m-Y')); //header-right='[page]/[toPage]'
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'document.pdf');
-    }
-
-    public function pdfExportByMpdf()
-    {
-        $pdf = LaravelMpdf::loadView($this->getPdfView(), $this->returnViewData(), [], [
-            'format' => 'A4',
-            'autoScriptToLang' => false,
-            'autoLangToFont' => false,
-            'autoVietnamese' => false,
-            'autoArabic' => false
-        ]);
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->stream('document.pdf');
-        }, 'document.pdf');
+        $this->reset('filters');
     }
 
     public function getHeaderRepeat()
@@ -99,6 +96,6 @@ abstract class ReportComponent extends Component
 
     public function render()
     {
-        return view('wire-reports::reports', $this->returnViewData(true));
+        return view('wire-reports::reports', $this->returnViewData(pagination:true));
     }
 }
