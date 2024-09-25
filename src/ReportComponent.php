@@ -77,6 +77,7 @@ abstract class ReportComponent extends Component
             'configure' => [
                 'export' => $export,
                 'export_type' => $export_type, // pdf or excel
+                'export_options' => config('wire-reports.export_options'),
                 'title' => $this->getFileTitle(),
                 'button' => $this->getButtonView(),
             ]

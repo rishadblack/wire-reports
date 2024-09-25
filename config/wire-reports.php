@@ -29,12 +29,9 @@ return [
             ],
         ],
     ],
-    'excel' => [
-        'xlsx' => [
-            'extension' => 'xlsx',
-        ],
-        'csv' => [
-            'extension' => 'csv',
-        ],
+    'export_options' => [
+        ['type' => 'pdf', 'class' => 'btn-primary'],
+        ['type' => 'xlsx', 'class' => 'btn-info'],
+        ['type' => 'csv', 'class' => 'btn-warning'],
     ],
 ];
