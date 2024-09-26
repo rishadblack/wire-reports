@@ -1,4 +1,4 @@
-<button {{ $attributes->merge(['type' => 'button', 'class' => 'btn btn-success waves-effect waves-light']) }}
+<button {{ $attributes->merge(['type' => 'button', 'class' => 'btn waves-effect waves-light']) }}
     @isset($attributes['wire:target']) wire:loading.attr="disabled" @endisset>
     @isset($attributes['wire:target'])
         @isset($attributes['icon'])

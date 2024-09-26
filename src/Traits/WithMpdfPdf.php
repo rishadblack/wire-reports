@@ -2,18 +2,17 @@
 
 namespace Rishadblack\WireReports\Traits;
 
-use Illuminate\Support\Str;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
 
 trait WithMpdfPdf
 {
     public function pdfExportByMpdf()
     {
-        $pdf = LaravelMpdf::loadView($this->getPdfView(), $this->returnViewData(export:true), [], [
+        $pdf = LaravelMpdf::loadView($this->getPdfView(), $this->returnViewData(export: true, layout_type: 'pdf'), [], [
             'format' => $this->getPaperSize(),
             'orientation' => ($this->getOrientation() == 'landscape' ? 'L' : 'P'),
-            'setAutoTopMargin' => 'stretch',  // Ensure that header is not overwritten
-            'setAutoBottomMargin' => 'stretch' // Ensure that footer is not overwritten
+            'setAutoTopMargin' => 'stretch', // Ensure that header is not overwritten
+            'setAutoBottomMargin' => 'stretch', // Ensure that footer is not overwritten
         ]);
 
         // $pdf->getMpdf()->SetDisplayMode('fullpage');
@@ -23,7 +22,6 @@ trait WithMpdfPdf
 
         // Set footers (left, center, right)
         // $pdf->getMpdf()->SetFooter('{PAGENO}/{nbpg}|Company Name|' . now()->format('d-m-Y'));
-
 
         // Set headers (applies to all pages)
         $pdf->getMpdf()->SetHTMLHeader('
@@ -47,13 +45,11 @@ trait WithMpdfPdf
     </table>
 ');
 
-
-
         // Ensure headers and footers are applied throughout all pages
         // $pdf->getMpdf()->AddPage();
 
         return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->stream($this->getFileName().'.pdf');
-        }, $this->getFileName().'.pdf');
+            echo $pdf->stream($this->getFileName() . '.pdf');
+        }, $this->getFileName() . '.pdf');
     }
 }

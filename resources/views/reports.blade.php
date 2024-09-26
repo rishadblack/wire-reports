@@ -6,14 +6,24 @@
             /* Reset inherited styles */
             display: block;
             width: 100%;
-            /* Responsive width */
-            max-width: 210mm;
             /* Max width for A4 page */
             padding: 2mm;
             background: white;
             border: 1px solid #ccc;
             margin: 0 auto;
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Portrait (default A4 size) */
+        .print-layout-portrait {
+            max-width: 210mm;
+            /* A4 width */
+        }
+
+        /* Landscape */
+        .print-layout-landscape {
+            max-width: 297mm;
+            /* A4 height as width */
         }
 
         /* Responsive design for smaller screens */
@@ -63,9 +73,11 @@
 
     <!-- Include view content here -->
     @includeIf($view)
+    @if (config('wire-reports.show_pagination'))
+        <!-- Pagination links for web view -->
+        <div class="mt-2">
+            {{ $datas->links() }}
+        </div>
+    @endif
 
-    <!-- Pagination links for web view -->
-    <div class="mt-2">
-        {{ $datas->links() }}
-    </div>
 </div>

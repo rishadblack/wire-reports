@@ -9,8 +9,8 @@ trait ComponentHelpers
 {
     protected $report_view;
     protected $button_view;
-    protected $pdf_view = 'wire-reports::export-layouts.pdf';
-    protected $excel_view = 'wire-reports::export-layouts.excel';
+    protected $pdf_view;
+    protected $excel_view;
     protected $file_name;
     protected $file_title;
     protected $pagination = 10;
@@ -64,7 +64,7 @@ trait ComponentHelpers
         return $this;
     }
 
-    public function getButtonView(): string|null
+    public function getButtonView(): string | null
     {
         return $this->button_view;
     }
@@ -77,7 +77,7 @@ trait ComponentHelpers
 
     public function getPdfView(): string
     {
-        return $this->pdf_view;
+        return $this->pdf_view ?? $this->getReportView();
     }
 
     public function setExcelView(string $excelView)
@@ -88,7 +88,7 @@ trait ComponentHelpers
 
     public function getExcelView(): string
     {
-        return $this->excel_view;
+        return $this->excel_view ?? $this->getReportView();
     }
 
     public function setFileName(string $fileName)
@@ -146,7 +146,7 @@ trait ComponentHelpers
         return $this->orientation ?? config('wire-reports.pdf_orientation');
     }
 
-    public function getFilter(string $filterName): string|bool
+    public function getFilter(string $filterName): string | bool
     {
         return isset($this->filters[$filterName]) ? $this->filters[$filterName] : false;
     }

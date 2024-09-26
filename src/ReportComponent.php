@@ -5,11 +5,14 @@ namespace Rishadblack\WireReports;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\WithPagination;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Builder;
 use Rishadblack\WireReports\Traits\WithExcel;
 use Rishadblack\WireReports\Traits\WithMpdfPdf;
 use Rishadblack\WireReports\Traits\WithSnappyPdf;
 use Rishadblack\WireReports\Traits\ComponentHelpers;
+use Rishadblack\WireReports\Helpers\WireReportHelper;
 
 abstract class ReportComponent extends Component
 {
@@ -20,10 +23,14 @@ abstract class ReportComponent extends Component
     use ComponentHelpers;
 
     #[Url]
+    public $wide_view = 'yes';
+
+    #[Url]
     public $filters = [];
 
     abstract public function builder(): Builder;
     abstract public function configure(): void;
+    abstract public function columns(): array;
 
     public function baseBuilder(): Builder
     {
@@ -61,7 +68,7 @@ abstract class ReportComponent extends Component
         }
     }
 
-    public function returnViewData(bool|int $pagination = false, bool $export = false, string $export_type = 'pdf')
+    public function returnViewData(bool | int $pagination = false, bool $export = false, string $layout_type = 'view')
     {
         $this->configure();
 
@@ -71,23 +78,30 @@ abstract class ReportComponent extends Component
             $datas = $this->baseBuilder()->get();
         }
 
+        Config::set('wire-reports.configure', [
+                'export' => $export,
+                'layout_type' => $layout_type,
+                'orientation' => $this->getOrientation(),
+                'wide_view' => $this->wide_view,
+                'title' => $this->getFileTitle(),
+                'button' => $this->getButtonView(),
+        ]);
+        Config::set('wire-reports.columns', $this->columns());
+
         return [
             'datas' => $datas,
             'view' => $this->getReportView(),
-            'configure' => [
-                'export' => $export,
-                'export_type' => $export_type, // pdf or excel
-                'export_options' => config('wire-reports.export_options'),
-                'title' => $this->getFileTitle(),
-                'button' => $this->getButtonView(),
-            ]
-
         ];
     }
 
     public function filterReset(): void
     {
         $this->reset('filters');
+    }
+
+    public function wideView()
+    {
+        $this->wide_view == 'yes' ? $this->wide_view = 'no' : $this->wide_view = 'yes';
     }
 
     public function getHeaderRepeat()
@@ -97,6 +111,6 @@ abstract class ReportComponent extends Component
 
     public function render()
     {
-        return view('wire-reports::reports', $this->returnViewData(pagination:true));
+        return view('wire-reports::reports', $this->returnViewData(pagination: true));
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Rishadblack\WireReports;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\Console\AboutCommand;
-use Rishadblack\WireReports\Console\Commands\MakeWireReports;
+use Illuminate\Support\ServiceProvider;
 use Rishadblack\WireReports\Console\Commands\DeleteWireReports;
+use Rishadblack\WireReports\Console\Commands\MakeWireReports;
 
 class WireReportsServiceProvider extends ServiceProvider
 {
@@ -18,10 +18,9 @@ class WireReportsServiceProvider extends ServiceProvider
     {
         if (class_exists(AboutCommand::class) && class_exists(\Composer\InstalledVersions::class)) {
             AboutCommand::add('Wire Report', [
-                'Version' => 'v'.\Composer\InstalledVersions::getPrettyVersion('rishadblack/wire-reports'),
+                'Version' => 'v' . \Composer\InstalledVersions::getPrettyVersion('rishadblack/wire-reports'),
             ]);
         }
-
 
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'rishadblack');
         // $this->loadViewsFrom(__DIR__.'/../resources/views', 'rishadblack');
@@ -41,7 +40,7 @@ class WireReportsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/wire-reports.php', 'wire-reports');
+        $this->mergeConfigFrom(__DIR__ . '/../config/wire-reports.php', 'wire-reports');
 
         // Register the service the package provides.
         $this->app->singleton('wire-reports', function ($app) {
@@ -72,7 +71,7 @@ class WireReportsServiceProvider extends ServiceProvider
     {
         // Publishing the configuration file.
         $this->publishes([
-            __DIR__.'/../config/wire-reports.php' => config_path('wire-reports.php'),
+            __DIR__ . '/../config/wire-reports.php' => config_path('wire-reports.php'),
         ], 'wire-reports.config');
 
         // Publish views
@@ -80,29 +79,27 @@ class WireReportsServiceProvider extends ServiceProvider
             __DIR__ . '/../resources/views' => resource_path('views/vendor/wire-reports'),
         ], 'views');
 
-
         // Publishing assets.
         /*$this->publishes([
-            __DIR__.'/../resources/assets' => public_path('vendor/rishadblack'),
+        __DIR__.'/../resources/assets' => public_path('vendor/rishadblack'),
         ], 'wire-reports.assets');*/
 
         // Publishing the translation files.
         /*$this->publishes([
-            __DIR__.'/../resources/lang' => resource_path('lang/vendor/rishadblack'),
+        __DIR__.'/../resources/lang' => resource_path('lang/vendor/rishadblack'),
         ], 'wire-reports.lang');*/
 
         // Registering package commands.
         $this->commands([
-                MakeWireReports::class,
-                DeleteWireReports::class
-            ]);
+            MakeWireReports::class,
+            DeleteWireReports::class,
+        ]);
 
         // Publishing stubs
         $this->publishes([
-                    __DIR__.'/../stubs/report-component.stub' => base_path('stubs/report-component.stub'),
-                    __DIR__.'/../stubs/report-component-view.stub' => base_path('stubs/report-component-view.stub'),
-                ], 'wire-reports-stubs');
-
+            __DIR__ . '/../stubs/report-component.stub' => base_path('stubs/report-component.stub'),
+            __DIR__ . '/../stubs/report-component-view.stub' => base_path('stubs/report-component-view.stub'),
+        ], 'wire-reports-stubs');
 
     }
 }
