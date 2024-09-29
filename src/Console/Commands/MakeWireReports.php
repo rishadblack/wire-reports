@@ -44,7 +44,7 @@ class MakeWireReports extends Command implements PromptsForMissingInput
         $this->parser = new ComponentParser(
             config('livewire.class_namespace'),
             config('livewire.view_path'),
-            'Reports.'.$this->argument('name')
+            $this->argument('name')
         );
 
         $name = $this->parser->className();
@@ -122,7 +122,7 @@ class MakeWireReports extends Command implements PromptsForMissingInput
         }
 
         if (trim($this->argument('name')) === '') {
-            $name = text('What is the name of the report component?', 'TestReport');
+            $name = text('What is the name of the report component?');
 
             if ($name) {
                 $input->setArgument('name', $name);
