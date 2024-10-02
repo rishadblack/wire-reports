@@ -70,7 +70,9 @@
             /* Avoid breaking rows or blocks between pages */
         }
     </style>
-
+    @if (!config('wire-reports.configure.export'))
+        @includeIf($filter_view)
+    @endif
     <!-- Include view content here -->
     @includeIf($view)
     @if (config('wire-reports.show_pagination'))

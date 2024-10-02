@@ -11,11 +11,16 @@ trait ComponentHelpers
     protected $button_view;
     protected $pdf_view;
     protected $excel_view;
+    protected $filter_view;
+    protected $filter_extended_view;
     protected $file_name;
     protected $file_title;
     protected $pagination = 10;
     protected $paper_size;
     protected $orientation;
+    protected $default_sort_field;
+    protected $default_sort_direction;
+
 
     public function setReportView(string $reportView)
     {
@@ -91,6 +96,28 @@ trait ComponentHelpers
         return $this->excel_view ?? $this->getReportView();
     }
 
+    public function setFilterView(string $filterView)
+    {
+        $this->filter_view = $filterView;
+        return $this;
+    }
+
+    public function getFilterView(): string
+    {
+        return $this->filter_view ?? 'wire-reports::filters.default';
+    }
+
+    public function setFilterExtendedView(string $filterExtendedView)
+    {
+        $this->filter_extended_view = $filterExtendedView;
+        return $this;
+    }
+
+    public function getFilterExtendedView(): string
+    {
+        return $this->filter_extended_view;
+    }
+
     public function setFileName(string $fileName)
     {
         $this->file_name = $fileName;
@@ -149,5 +176,17 @@ trait ComponentHelpers
     public function getFilter(string $filterName): string | bool
     {
         return isset($this->filters[$filterName]) ? $this->filters[$filterName] : false;
+    }
+
+    public function setDefaultSort(string $field, string $direction = 'asc')
+    {
+        $this->default_sort_field = $field;
+        $this->default_sort_direction = $direction;
+        return $this;
+    }
+
+    public function getDefaultSortField(): array
+    {
+        return [$this->default_sort_field, $this->default_sort_direction];
     }
 }

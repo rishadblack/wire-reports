@@ -28,14 +28,54 @@ abstract class ReportComponent extends Component
     #[Url]
     public $filters = [];
 
+    #[Url]
+    public $sortField; // Default sort field
+
+    #[Url]
+    public $sortDirection; // Default sort direction
+
     abstract public function builder(): Builder;
     abstract public function configure(): void;
     abstract public function columns(): array;
 
+    // Make filters optional by providing a default empty implementation
+    public function filters(): array
+    {
+        return [];
+    }
+
     public function baseBuilder(): Builder
     {
-        return $this->builder();
+        $builder = $this->builder(); // Start with the base query.
+
+
+        // Apply the active filters.
+        foreach ($this->filters() as $filter) {
+            $filterKey = $filter->key(); // Get the filter's key (column).
+
+            if (!empty($this->filters[$filterKey])) {
+                $filter->apply($builder, $this->filters[$filterKey]);
+            }
+        }
+
+        // Apply sorting if $sortField is defined
+        if (!empty($this->sortField) && !empty($this->sortDirection)) {
+            $builder->orderBy($this->sortField, $this->sortDirection);
+        }
+
+        return $builder;
     }
+
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } elseif ($field) {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc'; // Reset to ascending when changing the sort field
+        }
+    }
+
 
     public function export(string $type)
     {
@@ -86,17 +126,36 @@ abstract class ReportComponent extends Component
                 'title' => $this->getFileTitle(),
                 'button' => $this->getButtonView(),
         ]);
+
         Config::set('wire-reports.columns', $this->columns());
+
+
+        // Get the filters and convert them to arrays
+        $filters = array_map(function ($filter) {
+            return $filter->toArray();
+        }, $this->filters());
+
+        Config::set('wire-reports.filters', $filters);
 
         return [
             'datas' => $datas,
             'view' => $this->getReportView(),
+            'filter_view' => $this->getFilterView(),
+            'filter_extended_view' => $this->wide_view,
         ];
+    }
+
+    public function defaultSettings()
+    {
+        $this->sortField = $this->getDefaultSortField()[0];
+        $this->sortDirection = $this->getDefaultSortField()[1];
+        $this->filters = [];
     }
 
     public function filterReset(): void
     {
-        $this->reset('filters');
+        $this->reset(['filters', 'sortField', 'sortDirection']);
+        $this->defaultSettings();
     }
 
     public function wideView()
@@ -107,6 +166,11 @@ abstract class ReportComponent extends Component
     public function getHeaderRepeat()
     {
         return true;
+    }
+
+    public function mount()
+    {
+        $this->defaultSettings();
     }
 
     public function render()
