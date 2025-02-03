@@ -1,18 +1,16 @@
 <?php
-
 namespace Rishadblack\WireReports;
 
-use Livewire\Component;
-use Livewire\Attributes\Url;
-use Livewire\WithPagination;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Context;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Rishadblack\WireReports\Traits\ComponentHelpers;
 use Rishadblack\WireReports\Traits\WithExcel;
 use Rishadblack\WireReports\Traits\WithMpdfPdf;
 use Rishadblack\WireReports\Traits\WithSnappyPdf;
-use Rishadblack\WireReports\Traits\ComponentHelpers;
-use Rishadblack\WireReports\Helpers\WireReportHelper;
 
 abstract class ReportComponent extends Component
 {
@@ -48,18 +46,17 @@ abstract class ReportComponent extends Component
     {
         $builder = $this->builder(); // Start with the base query.
 
-
         // Apply the active filters.
         foreach ($this->filters() as $filter) {
             $filterKey = $filter->key(); // Get the filter's key (column).
 
-            if (!empty($this->filters[$filterKey])) {
+            if (! empty($this->filters[$filterKey])) {
                 $filter->apply($builder, $this->filters[$filterKey]);
             }
         }
 
         // Apply sorting if $sortField is defined
-        if (!empty($this->sortField) && !empty($this->sortDirection)) {
+        if (! empty($this->sortField) && ! empty($this->sortDirection)) {
             $builder->orderBy($this->sortField, $this->sortDirection);
         }
 
@@ -75,7 +72,6 @@ abstract class ReportComponent extends Component
             $this->sortDirection = 'asc'; // Reset to ascending when changing the sort field
         }
     }
-
 
     public function export(string $type)
     {
@@ -119,23 +115,22 @@ abstract class ReportComponent extends Component
         }
 
         Config::set('wire-reports.configure', [
-                'export' => $export,
-                'layout_type' => $layout_type,
-                'orientation' => $this->getOrientation(),
-                'wide_view' => $this->wide_view,
-                'title' => $this->getFileTitle(),
-                'button' => $this->getButtonView(),
+            'export' => $export,
+            'layout_type' => $layout_type,
+            'orientation' => $this->getOrientation(),
+            'wide_view' => $this->wide_view,
+            'title' => $this->getFileTitle(),
+            'button' => $this->getButtonView(),
         ]);
 
         Config::set('wire-reports.columns', $this->columns());
-
 
         // Get the filters and convert them to arrays
         $filters = array_map(function ($filter) {
             return $filter->toArray();
         }, $this->filters());
 
-        Config::set('wire-reports.filters', $filters);
+        Context::add('wire-reports.filters', $filters);
 
         return [
             'datas' => $datas,

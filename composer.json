@@ -2,13 +2,18 @@
     "name": "rishadblack/wire-reports",
     "description": "Create responsive, real-time report views in Laravel using WireReports. Powered by Livewire, this package allows effortless exporting to PDF, Excel, or print, streamlining your reporting process.",
     "license": "AGPL-3.0",
-    "authors": [{
-        "name": "S M Rishad",
-        "email": "rishad.black@gmail.com",
-        "homepage": "https://smrishad.com"
-    }],
+    "authors": [
+        {
+            "name": "S M Rishad",
+            "email": "rishad.black@gmail.com",
+            "homepage": "https://smrishad.com"
+        }
+    ],
     "homepage": "https://github.com/rishadblack/wire-reports",
-    "keywords": ["Laravel", "WireReports"],
+    "keywords": [
+        "Laravel",
+        "WireReports"
+    ],
     "version": "1.0.3",
     "require": {
         "php": "^8.1",

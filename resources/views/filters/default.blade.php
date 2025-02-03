@@ -1,6 +1,6 @@
 <div>
     <div class="row">
-        @foreach (config('wire-reports.filters') as $filter)
+        @foreach (context('wire-reports.filters', []) as $filter)
             @if ($filter['filter_type'] == 'select')
                 <div class="{{ isset($filter['class']) ? $filter['class'] : 'col-lg-4' }}">
                     <label for="{{ $filter['name'] }}"
