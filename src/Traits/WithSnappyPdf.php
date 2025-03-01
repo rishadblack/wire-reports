@@ -1,5 +1,4 @@
 <?php
-
 namespace Rishadblack\WireReports\Traits;
 
 use Barryvdh\Snappy\Facades\SnappyPdf;
@@ -15,9 +14,9 @@ trait WithSnappyPdf
             'options' => config('wire-reports.snappy.options'),
         ]);
 
-        $pdf = SnappyPdf::loadView($this->getPdfView(), $this->returnViewData(export: true, layout_type: 'pdf'));
+        $pdf = SnappyPdf::loadView('wire-reports::reports', $this->returnViewData(export: true, layout_type: 'pdf'));
 
-        $pdf->setOption('page-size', $this->getPaperSize()); // A3, A4, A5, Legal, Letter, Tabloid
+        $pdf->setOption('page-size', $this->getPaperSize());     // A3, A4, A5, Legal, Letter, Tabloid
         $pdf->setOption('orientation', $this->getOrientation()); // Landscape or Portrait
 
         if (config('wire-reports.pdf_header.html_view')) {
@@ -36,12 +35,10 @@ trait WithSnappyPdf
         $pdf->setOption('margin-left', config('wire-reports.snappy.margin-left'));
         $pdf->setOption('margin-right', config('wire-reports.snappy.margin-right'));
 
-
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, $this->getFileName() . '.pdf');
     }
-
 
     public function setHeaderFooterOption($pdf, string $type, string $position)
     {

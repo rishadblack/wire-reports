@@ -1,5 +1,4 @@
 <?php
-
 namespace Rishadblack\WireReports\Traits;
 
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
@@ -8,10 +7,10 @@ trait WithMpdfPdf
 {
     public function pdfExportByMpdf()
     {
-        $pdf = LaravelMpdf::loadView($this->getPdfView(), $this->returnViewData(export: true, layout_type: 'pdf'), [], [
+        $pdf = LaravelMpdf::loadView('wire-reports::reports', $this->returnViewData(export: true, layout_type: 'pdf'), [], [
             'format' => $this->getPaperSize(),
             'orientation' => ($this->getOrientation() == 'landscape' ? 'L' : 'P'),
-            'setAutoTopMargin' => 'stretch', // Ensure that header is not overwritten
+            'setAutoTopMargin' => 'stretch',    // Ensure that header is not overwritten
             'setAutoBottomMargin' => 'stretch', // Ensure that footer is not overwritten
         ]);
 

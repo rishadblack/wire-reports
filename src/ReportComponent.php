@@ -1,25 +1,20 @@
 <?php
-
 namespace Rishadblack\WireReports;
 
-use Livewire\Component;
-use Livewire\Attributes\Url;
-use Livewire\WithPagination;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Builder;
-use Rishadblack\WireReports\Traits\WithExcel;
-use Rishadblack\WireReports\Traits\WithMpdfPdf;
-use Rishadblack\WireReports\Traits\WithSnappyPdf;
+use Illuminate\Support\Facades\Config;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 use Rishadblack\WireReports\Traits\ComponentHelpers;
-use Rishadblack\WireReports\Helpers\WireReportHelper;
+use Rishadblack\WireReports\Traits\WithExport;
+use Rishadblack\WireReports\Traits\WithQueryBuilder;
 
 abstract class ReportComponent extends Component
 {
     use WithPagination;
-    use WithMpdfPdf;
-    use WithSnappyPdf;
-    use WithExcel;
+    use WithExport;
+    use WithQueryBuilder;
     use ComponentHelpers;
 
     #[Url]
@@ -28,43 +23,40 @@ abstract class ReportComponent extends Component
     #[Url]
     public $filters = [];
 
+    #[Url]
+    public $sortField; // Default sort field
+
+    #[Url]
+    public $sortDirection; // Default sort direction
+
+    #[Url]
+    public $per_page;
+
+    #[Url( as :'q')]
+    public $search;
+
     abstract public function builder(): Builder;
     abstract public function configure(): void;
     abstract public function columns(): array;
 
-    public function baseBuilder(): Builder
+    // Make filters optional by providing a default empty implementation
+    public function filters(): array
     {
-        return $this->builder();
+        return [];
     }
 
-    public function export(string $type)
+    public function search(Builder $builder, $search): Builder
     {
-        if ($type == 'pdf') {
-            return $this->exportPdf();
-        } elseif ($type == 'xlsx' || $type == 'csv') {
-            return $this->exportExcel($type);
-        }
+        return $builder;
     }
 
-    public function exportPdf()
+    public function sortBy($field)
     {
-        try {
-            if (config('wire-reports.pdf_export_by') == 'mpdf') {
-                return $this->pdfExportByMpdf();
-            } elseif (config('wire-reports.pdf_export_by') == 'snappy') {
-                return $this->pdfExportBySnappy();
-            }
-        } catch (\Exception $e) {
-            dd('PDF generation error: ' . $e->getMessage());
-        }
-    }
-
-    public function exportExcel($type)
-    {
-        try {
-            return $this->excelExportByMaatwebsite($type);
-        } catch (\Exception $e) {
-            dd('Excel generation error: ' . $e->getMessage());
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } elseif ($field) {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc'; // Reset to ascending when changing the sort field
         }
     }
 
@@ -79,24 +71,54 @@ abstract class ReportComponent extends Component
         }
 
         Config::set('wire-reports.configure', [
-                'export' => $export,
-                'layout_type' => $layout_type,
-                'orientation' => $this->getOrientation(),
-                'wide_view' => $this->wide_view,
-                'title' => $this->getFileTitle(),
-                'button' => $this->getButtonView(),
+            'export' => $export,
+            'layout_type' => $layout_type,
+            'orientation' => $this->getOrientation(),
+            'wide_view' => $this->wide_view,
+            'title' => $this->getFileTitle(),
+            'button' => $this->getButtonView(),
+            'paper_size' => $this->getPaperSize(),
+            'pagination' => $this->getPagination(),
+            'pagination_options' => $this->getPaginationOptions(),
+            'hide_loader' => $this->isHideLoader(),
         ]);
-        Config::set('wire-reports.columns', $this->columns());
+
+        // Get the filters and convert them to arrays
+        $filters = array_map(function ($filter) {
+            return $filter->toArray();
+        }, $this->filters());
+
+        Config::set('wire-reports.filters', $filters);
 
         return [
             'datas' => $datas,
+            'columns' => array_map(fn($column) => $column->toArray(), $this->columns()),
             'view' => $this->getReportView(),
+            'filter_view' => $this->getFilterView(),
+            'filter_extended_view' => $this->wide_view,
         ];
+    }
+
+    public function defaultSettings()
+    {
+        $this->sortField = $this->getDefaultSortField()[0];
+        $this->sortDirection = $this->getDefaultSortField()[1];
     }
 
     public function filterReset(): void
     {
-        $this->reset('filters');
+        $this->reset(['filters', 'search', 'sortField', 'sortDirection']);
+        $this->defaultSettings();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function filterUpdate()
+    {
+        $this->resetPage();
     }
 
     public function wideView()
@@ -107,6 +129,11 @@ abstract class ReportComponent extends Component
     public function getHeaderRepeat()
     {
         return true;
+    }
+
+    public function mount()
+    {
+        $this->defaultSettings();
     }
 
     public function render()

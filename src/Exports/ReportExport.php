@@ -1,23 +1,22 @@
 <?php
-
 namespace Rishadblack\WireReports\Exports;
 
-use Illuminate\Contracts\View\View;
+// use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\View;
+use Illuminate\View\View as LaravelView;
 use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Events\AfterSheet;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 
 class ReportExport implements FromView, ShouldAutoSize, WithEvents
 {
     public string $currentView;
     public array $currentData = [];
 
-    public function view(): View
+    public function view(): LaravelView
     {
-        return view($this->currentView, $this->currentData);
+        return View::make('wire-reports::reports', $this->currentData);
     }
 
     public function setCurrentView($currentView)
@@ -48,7 +47,6 @@ class ReportExport implements FromView, ShouldAutoSize, WithEvents
                 //         'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 //     ],
                 // ]);
-
 
                 // Adjust column widths to help center the content
                 // $sheet->getColumnDimension('A')->setWidth(30);
