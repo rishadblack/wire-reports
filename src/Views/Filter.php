@@ -1,37 +1,35 @@
 <?php
-
 namespace Rishadblack\WireReports\Views;
 
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Builder;
 use Closure;
+use Illuminate\Database\Eloquent\Builder;
 
 class Filter
 {
-    protected $name;  // This is now acting as the title of the filter.
-    protected $title;  // This serves as the unique identifier (or 'name') for the filter.
-    protected $placeholder;  // This serves as the unique identifier (or 'name') for the filter.
-    protected $responseTime = '500';  // This serves as response time for the filter.
+    protected $name;                 // This is now acting as the title of the filter.
+    protected $title;                // This serves as the unique identifier (or 'name') for the filter.
+    protected $placeholder;          // This serves as the unique identifier (or 'name') for the filter.
+    protected $responseTime = '500'; // This serves as response time for the filter.
     protected $customClass;
-    protected $filter_type;  // This is the filter ID (key).
-    protected $options = [];  // Filter options for dropdown/select.
-    protected $filterPillTitle;  // Title for filter pill in UI.
-    protected $filterPillValues = [];  // Values for displaying pills in UI.
-    protected $filterCallback;  // Callback to apply the filter logic.
+    protected $filter_type = 'text';  // This is the filter ID (key).
+    protected $options     = [];      // Filter options for dropdown/select.
+    protected $filterPillTitle;       // Title for filter pill in UI.
+    protected $filterPillValues = []; // Values for displaying pills in UI.
+    protected $filterCallback;        // Callback to apply the filter logic.
+    protected $searchComponent;       // Search component for the filter.
 
     /**
      * Create a new filter instance with a name and an optional column (ID).
      *
      * If column is null, it defaults to the snake_cased name with 'filter_' prefix.
      */
-    public static function make(string $title, string $name, string $filter_type): self
+    public static function make(string $title, string $name): self
     {
         $instance = new self();
 
         // 'name' now represents the filter title.
         $instance->title = $title;
         $instance->name = $name;
-        $instance->filter_type = $filter_type;
 
         return $instance;
     }
@@ -80,6 +78,25 @@ class Filter
         return $this;
     }
 
+    public function text(): self
+    {
+        $this->filter_type = 'text';
+        return $this;
+    }
+
+    public function select(): self
+    {
+        $this->filter_type = 'select';
+        return $this;
+    }
+
+    public function searchComponent(string $search_component): self
+    {
+        $this->filter_type = 'search_component';
+        $this->searchComponent = $search_component;
+        return $this;
+    }
+
     /**
      * Apply the filter logic to the query using the stored callback.
      */
@@ -102,6 +119,7 @@ class Filter
             'placeholder' => $this->placeholder,
             'class' => $this->customClass,
             'filter_type' => $this->filter_type,
+            'search_component' => $this->searchComponent,
             'response_time' => $this->responseTime,
             'options' => $this->options,
         ];

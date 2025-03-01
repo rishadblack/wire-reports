@@ -1,5 +1,4 @@
 <?php
-
 namespace Rishadblack\WireReports\Traits;
 
 use Illuminate\Support\Str;
@@ -15,12 +14,13 @@ trait ComponentHelpers
     protected $filter_extended_view;
     protected $file_name;
     protected $file_title;
-    protected $pagination = 10;
+    protected $pagination         = 10;
+    protected $pagination_options = [10, 25, 50, 100, 250];
     protected $paper_size;
     protected $orientation;
     protected $default_sort_field;
     protected $default_sort_direction;
-
+    protected $hide_loader;
 
     public function setReportView(string $reportView)
     {
@@ -34,32 +34,34 @@ trait ComponentHelpers
             return $this->report_view;
         }
 
-        // Get the full class name of the current instance
         $fullClassName = get_class($this);
-
-        // Extract the namespace parts
         $namespaceParts = explode('\\', $fullClassName);
         $reportIndex = array_search('Reports', $namespaceParts);
 
-        // Check if 'Reports' exists in the namespace
         if ($reportIndex !== false) {
             // Extract everything after 'Reports'
             $subNamespaceParts = array_slice($namespaceParts, $reportIndex);
-
-            // Combine sub-namespace and view name to create the view path
             $subNamespace = implode('.', $subNamespaceParts);
 
-            // Use ComponentParser to construct the parser
+            $subNamespace = collect(explode('.', $subNamespace))
+                ->map(fn($part) => Str::kebab($part))
+                ->implode('.');
+
+            $moduleName = $namespaceParts[1] ?? null; // Assuming namespace is Modules\ModuleName\Reports strtolower(config('modules-livewire.namespace'))
+            if ($moduleName && is_dir(base_path(config('modules.namespace') . "/{$moduleName}/"))) {
+                return strtolower("{$moduleName}::" . (config('modules-livewire.namespace')) . '.' . str_replace('/', '.', $subNamespace));
+            }
+
+            // Default Livewire parser
             $parser = new ComponentParser(
                 config('livewire.class_namespace'),
                 config('livewire.view_path'),
                 $subNamespace
             );
 
-            return str_replace('.', '/', $parser->viewName()); // Return the view path
+            return str_replace('.', '/', $parser->viewName());
         }
 
-        // Handle case where 'Reports' is not found in the namespace
         throw new \Exception("Reports namespace not found in class: {$fullClassName}");
     }
 
@@ -148,7 +150,23 @@ trait ComponentHelpers
 
     public function getPagination(): int
     {
+        if ($this->per_page) {
+            return $this->per_page;
+        }
+
         return $this->pagination;
+    }
+
+    public function setPaginationOptions(array $pagination_options)
+    {
+        $this->pagination_options = $pagination_options;
+        return $this;
+    }
+
+    public function getPaginationOptions(): array
+    {
+
+        return $this->pagination_options;
     }
 
     public function setPaperSize(string $paperSize)
@@ -188,5 +206,16 @@ trait ComponentHelpers
     public function getDefaultSortField(): array
     {
         return [$this->default_sort_field, $this->default_sort_direction];
+    }
+
+    public function hideLoader()
+    {
+        $this->hide_loader = true;
+        return $this;
+    }
+
+    public function isHideLoader(): bool
+    {
+        return $this->hide_loader ?? false;
     }
 }
