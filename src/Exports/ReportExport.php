@@ -19,13 +19,13 @@ class ReportExport implements FromView, ShouldAutoSize, WithEvents
         return View::make('wire-reports::reports', $this->currentData);
     }
 
-    public function setCurrentView($currentView)
+    public function setCurrentView(string $currentView): self
     {
         $this->currentView = $currentView;
         return $this;
     }
 
-    public function setCurrentData($currentData)
+    public function setCurrentData(array $currentData): self
     {
         $this->currentData = $currentData;
         return $this;

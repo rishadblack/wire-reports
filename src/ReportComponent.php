@@ -3,6 +3,7 @@ namespace Rishadblack\WireReports;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -38,6 +39,23 @@ abstract class ReportComponent extends Component
     abstract public function builder(): Builder;
     abstract public function configure(): void;
     abstract public function columns(): array;
+
+    #[Computed]
+    public function extraData()
+    {
+        return $this->additionalQuery();
+    }
+
+    // Make filters optional by providing a default empty implementation
+    public function additionalQuery(): array
+    {
+        return [];
+    }
+
+    public function additionalData(): array
+    {
+        return [];
+    }
 
     // Make filters optional by providing a default empty implementation
     public function filters(): array
@@ -83,12 +101,7 @@ abstract class ReportComponent extends Component
             'hide_loader' => $this->isHideLoader(),
         ]);
 
-        // Get the filters and convert them to arrays
-        $filters = array_map(function ($filter) {
-            return $filter->toArray();
-        }, $this->filters());
-
-        Config::set('wire-reports.filters', $filters);
+        Config::set('wire-reports.filters', array_map(fn($filters) => $filters->toArray(), $this->filters()));
 
         return [
             'datas' => $datas,
@@ -96,6 +109,8 @@ abstract class ReportComponent extends Component
             'view' => $this->getReportView(),
             'filter_view' => $this->getFilterView(),
             'filter_extended_view' => $this->wide_view,
+            'additional_query' => $this->extraData,
+            'additional_data' => $this->additionalData(),
         ];
     }
 
