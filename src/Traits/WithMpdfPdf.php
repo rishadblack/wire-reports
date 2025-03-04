@@ -1,12 +1,25 @@
 <?php
 namespace Rishadblack\WireReports\Traits;
 
+use Illuminate\Support\Facades\Config;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
 
 trait WithMpdfPdf
 {
     public function pdfExportByMpdf()
     {
+        Config::set('pdf.title', config('wire-reports.default_download_file_name'));
+        Config::set('pdf.mode', 'utf-8');
+        Config::set('pdf.margin_left', config('wire-reports.mpdf.margin_left'));
+        Config::set('pdf.margin_right', config('wire-reports.mpdf.margin_right'));
+        Config::set('pdf.margin_top', config('wire-reports.mpdf.margin_top'));
+        Config::set('pdf.margin_bottom', config('wire-reports.mpdf.margin_bottom'));
+        Config::set('pdf.default_font', config('wire-reports.mpdf.default_font'));
+        Config::set('pdf.font_path', config('wire-reports.mpdf.font_path'));
+        Config::set('pdf.font_data', config('wire-reports.mpdf.font_data'));
+        Config::set('pdf.default_font_size', config('wire-reports.mpdf.default_font_size'));
+        Config::set('pdf.auto_language_detection', config('wire-reports.mpdf.auto_language_detection'));
+
         $pdf = LaravelMpdf::loadView('wire-reports::reports', $this->returnViewData(export: true, layout_type: 'pdf'), [], [
             'format' => $this->getPaperSize(),
             'orientation' => ($this->getOrientation() == 'landscape' ? 'L' : 'P'),
@@ -38,7 +51,7 @@ trait WithMpdfPdf
     <table width="100%">
         <tr>
             <td width="33%">{PAGENO}/{nbpg}</td>
-            <td width="33%" align="center">Company Name</td>
+            <td width="33%" align="center"></td>
             <td width="33%" align="right">' . now()->format('d-m-Y') . '</td>
         </tr>
     </table>

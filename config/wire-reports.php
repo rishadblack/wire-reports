@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'pdf_export_by' => 'snappy',     // snappy or mpdf
+    'pdf_export_by' => 'mpdf',       // snappy or mpdf
     'pdf_paper_size' => 'A4',        // A3, A4, A5, Legal, Letter, Tabloid
     'pdf_orientation' => 'portrait', // landscape or portrait
     'default_download_file_name' => 'report',
@@ -22,10 +22,20 @@ return [
     ],
     'mpdf' => [
         'no-outline' => true,
+        'default_font_size' => 12,
+        'auto_language_detection' => true,
         'margin_left' => 5,
         'margin_right' => 5,
         'margin_top' => 5,
         'margin_bottom' => 5,
+        'default_font' => 'SolaimanLipi',
+        'font_path' => public_path('fonts/'),
+        'font_data' => [
+            'solaimanlipi' => [
+                'R' => 'SolaimanLipi.ttf',      // Regular
+                'B' => 'SolaimanLipi-Bold.ttf', // Bold (if available)
+            ],
+        ],
     ],
     'export_options' => [
         ['type' => 'pdf', 'class' => 'btn-primary'],
